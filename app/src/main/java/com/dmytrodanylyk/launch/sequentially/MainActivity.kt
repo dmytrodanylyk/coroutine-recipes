@@ -64,7 +64,7 @@ interface MainView {
 class MainPresenter(private val view: MainView,
                     private val dataProvider: DataProviderAPI,
                     private val uiContext: CoroutineContext = UI,
-                    private val ioContext: CoroutineContext = CommonPool) {
+                    private val bgContext: CoroutineContext = CommonPool) {
 
     fun startPresenting() {
         loadData()
@@ -78,10 +78,10 @@ class MainPresenter(private val view: MainView,
         view.showLoading() // ui thread
 
         // non ui thread, suspend until task is finished
-        val result1 = async(ioContext) { dataProvider.loadData("Task 1") }.await()
+        val result1 = async(bgContext) { dataProvider.loadData("Task 1") }.await()
 
         // non ui thread, suspend until task is finished
-        val result2 = async(ioContext) { dataProvider.loadData("Task 2") }.await()
+        val result2 = async(bgContext) { dataProvider.loadData("Task 2") }.await()
 
         val result = "$result1 $result2" // ui thread
 

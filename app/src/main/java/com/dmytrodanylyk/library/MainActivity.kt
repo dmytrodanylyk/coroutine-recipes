@@ -25,9 +25,9 @@ class MainActivity : AppCompatActivity() {
         val userProvider: UserProviderAPI = UserProvider()
         val userTask = userProvider.loadUser(UUID.randomUUID().toString())
 
-        coroutine(userTask)
-        callback(userTask)
-        observable(userTask)
+        coroutine(userTask) // api usage via coroutine
+        callback(userTask) // api usage via callback
+        observable(userTask) // api usage via rxjava
     }
 
     private fun observable(userTask: Task<User?>) {
@@ -46,8 +46,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun coroutine(userTask: Task<User?>) {
-        launch(UI) {
+    private fun coroutine(userTask: Task<User?>) = launch(UI) {
             val user = userTask.execute().await() // background thread
             logd("coroutine " + user) // ui thread
         }

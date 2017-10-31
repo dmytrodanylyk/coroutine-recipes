@@ -6,7 +6,7 @@ import com.dmytrodanylyk.cancel.MainView
 import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
-import kotlin.coroutines.experimental.EmptyCoroutineContext
+import kotlin.coroutines.experimental.Unconfined
 import org.mockito.Mockito.`when` as whenMockito
 
 class MainPresenterTest {
@@ -20,7 +20,7 @@ class MainPresenterTest {
         val mockDataProvider = mock(DataProviderAPI::class.java)
         whenMockito(mockDataProvider.loadData(ArgumentMatchers.anyString())).thenReturn(MOCK_RESULT)
 
-        val presenter = MainPresenter(mockView, mockDataProvider, EmptyCoroutineContext, EmptyCoroutineContext)
+        val presenter = MainPresenter(mockView, mockDataProvider, Unconfined, Unconfined)
 
         // test
         presenter.startPresenting()

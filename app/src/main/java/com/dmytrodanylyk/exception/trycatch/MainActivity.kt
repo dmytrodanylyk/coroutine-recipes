@@ -8,11 +8,8 @@ import android.support.v7.app.AppCompatActivity
 import com.dmytrodanylyk.R
 import com.dmytrodanylyk.getThreadMessage
 import com.dmytrodanylyk.logd
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
 import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 
@@ -52,7 +49,7 @@ class DataProvider : DataProviderAPI {
 
     private fun mayThrowException() {
         if (Random().nextBoolean()) {
-            throw IllegalStateException("Ooops you are unlucky")
+            throw IllegalArgumentException("Ooops you are unlucky")
         }
     }
 
@@ -74,7 +71,7 @@ interface MainView {
 class MainPresenter(private val view: MainView,
                     private val dataProvider: DataProviderAPI,
                     private val uiContext: CoroutineContext = UI,
-                    private val bgContext: CoroutineContext = CommonPool) {
+                    private val bgContext: CoroutineContext = newFixedThreadPoolContext(2, "bg")) {
 
     private var job: Job? = null
 
@@ -90,11 +87,10 @@ class MainPresenter(private val view: MainView,
         view.showLoading() // ui thread
 
         try {
-            val task = async(bgContext) { dataProvider.loadData("Task") }
-            val result = task.await() // non ui thread, suspend until task is finished
+            val result = run(bgContext) { dataProvider.loadData("Task") }
 
             view.showData(result) // ui thread
-        } catch (e: IllegalArgumentException) {
+        } catch (e: RuntimeException) {
             e.printStackTrace()
         }
     }

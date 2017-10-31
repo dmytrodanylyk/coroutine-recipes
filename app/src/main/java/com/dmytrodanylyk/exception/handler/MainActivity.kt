@@ -88,8 +88,7 @@ class MainPresenter(private val view: MainView,
     private fun loadData() = launch(uiContext + exceptionHandler) {
         view.showLoading() // ui thread
 
-        val task = async(bgContext) { dataProvider.loadData("Task") }
-        val result = task.await() // non ui thread, suspend until task is finished
+        val result = run(bgContext) { dataProvider.loadData("Task") }
 
         view.showData(result) // ui thread
     }

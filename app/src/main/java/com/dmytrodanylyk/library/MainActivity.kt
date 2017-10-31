@@ -47,11 +47,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun coroutine(userTask: Task<User?>) = launch(UI) {
-            val user = userTask.execute().await() // background thread
-            logd("coroutine " + user) // ui thread
-        }
+        val user = userTask.execute().await() // background thread
+        logd("coroutine " + user) // ui thread
     }
-
 }
 
 // core api

@@ -1,6 +1,6 @@
 @file:Suppress("EXPERIMENTAL_FEATURE_WARNING")
 
-package com.dmytrodanylyk.exception.trycatch
+package com.dmytrodanylyk.exception.awaitsafe
 
 import android.os.Bundle
 import android.os.SystemClock
@@ -8,11 +8,9 @@ import android.support.v7.app.AppCompatActivity
 import com.dmytrodanylyk.R
 import com.dmytrodanylyk.getThreadMessage
 import com.dmytrodanylyk.logd
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
+import java.lang.Exception
 import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 
@@ -69,7 +67,7 @@ interface MainView {
 }
 
 /**
- * handle exceptions via try-catch block
+ * silently handle exceptions via try-catch block inside awaitSafe extension function
  */
 class MainPresenter(private val view: MainView,
                     private val dataProvider: DataProviderAPI,
@@ -89,14 +87,23 @@ class MainPresenter(private val view: MainView,
     private fun loadData() = launch(uiContext) {
         view.showLoading() // ui thread
 
-        try {
-            val task = async(bgContext) { dataProvider.loadData("Task") }
-            val result = task.await() // non ui thread, suspend until task is finished
+        val task = async(bgContext) { dataProvider.loadData("Task") }
+        val result = task.awaitSafe() // non ui thread, suspend until task is finished
 
-            view.showData(result) // ui thread
-        } catch (e: IllegalArgumentException) {
-            e.printStackTrace()
-        }
+        view.showData(result) // ui thread
     }
 
+    /**
+     * return T or null if exception was thrown
+     */
+    suspend fun <T> Deferred<T>.awaitSafe(): T? {
+        var result: T? = null
+        try {
+            result = await()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return result
+    }
 }

@@ -8,7 +8,15 @@ Slides: [Android Coroutine Recipes](https://speakerdeck.com/dmytrodanylyk/androi
 
 Contains following examples:
 
-- How to launch a coroutine [source](app/src/main/java/com/dmytrodanylyk/examples/LaunchFragment.kt)
+- How to launch a coroutine
+- How to launch coroutine with a timeout
+- How to launch coroutine which perform 2 background tasks sequentially
+- How to launch coroutine which perform 2 background tasks in parallel
+- How to cancel a coroutine
+- How to catch exception thrown inside coroutine (try/catch)
+- How to catch exception thrown inside coroutine (exception handler)
+
+### How to launch a coroutine 
 
 ```kotlin
 fun loadData() = launch(uiContext, parent = job) {
@@ -20,8 +28,9 @@ fun loadData() = launch(uiContext, parent = job) {
     hideLoading() // ui thread
 }
 ```
+You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/LaunchFragment.kt)
 
-- How to launch coroutine with a timeout [source](app/src/main/java/com/dmytrodanylyk/examples/LaunchTimeoutFragment.kt)
+### How to launch coroutine with a timeout
 
 ```kotlin
 fun loadData() = launch(uiContext, parent = job) {
@@ -33,8 +42,9 @@ fun loadData() = launch(uiContext, parent = job) {
     hideLoading()
 }
 ```
+You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/LaunchTimeoutFragment.kt)
 
-- How to launch coroutine which perform 2 background tasks sequentially [source](app/src/main/java/com/dmytrodanylyk/examples/LaunchSequentiallyFragment.kt)
+### How to launch coroutine which perform 2 background tasks sequentially 
 
 ```kotlin
 fun loadData() = launch(uiContext, parent = job) {
@@ -47,8 +57,9 @@ fun loadData() = launch(uiContext, parent = job) {
     hideLoading()
 }
 ```
+You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/LaunchSequentiallyFragment.kt)
 
-- How to launch coroutine which perform 2 background tasks in parallel [source](app/src/main/java/com/dmytrodanylyk/examples/LaunchParallelFragment.kt)
+### How to launch coroutine which perform 2 background tasks in parallel 
 
 ```kotlin
 fun loadData() = launch(uiContext, parent = job) {
@@ -62,8 +73,9 @@ fun loadData() = launch(uiContext, parent = job) {
     hideLoading()
 }
 ```
+You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/LaunchParallelFragment.kt)
 
-- How to cancel a coroutine [source](app/src/main/java/com/dmytrodanylyk/examples/CancelFragment.kt)
+### How to cancel a coroutine 
 
 ```kotlin
 private var job: Job = Job()
@@ -78,8 +90,9 @@ override fun onDestroyView() {
 }
 
 ```
+You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/CancelFragment.kt)
 
-- How to catch exception thrown inside coroutine (try/catch) [source](app/src/main/java/com/dmytrodanylyk/examples/ExceptionFragment.kt)
+### How to catch exception thrown inside coroutine (try/catch) [source](app/src/main/java/com/dmytrodanylyk/examples/ExceptionFragment.kt)
 
 ```kotlin
 fun loadData() = launch(uiContext, parent = job) {
@@ -95,8 +108,9 @@ fun loadData() = launch(uiContext, parent = job) {
     hideLoading()
 }
 ```
+You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/ExceptionHandlerFragment.kt)
 
-- How to catch exception thrown inside coroutine (exception handler) [source](app/src/main/java/com/dmytrodanylyk/examples/ExceptionHandlerFragment.kt)
+### How to catch exception thrown inside coroutine (exception handler) 
 
 ```kotlin
 val exceptionHandler: CoroutineContext = CoroutineExceptionHandler { _, throwable ->
@@ -109,3 +123,4 @@ fun loadData() = launch(uiContext + exceptionHandler, parent = job) {
     ...
 }
 ```
+You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/ExceptionHandlerFragment.kt)

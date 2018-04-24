@@ -1,6 +1,6 @@
 # Learn Kotlin Coroutines for Android by example
 
-Artcle: [Android Coroutine Recipes](https://medium.com/@dmytrodanylyk/android-coroutine-recipes-33467a4302e9)
+Article: [Android Coroutine Recipes](https://medium.com/@dmytrodanylyk/android-coroutine-recipes-33467a4302e9)
 
 Slides: [Android Coroutine Recipes](https://speakerdeck.com/dmytrodanylyk/android-coroutine-recipes)
 

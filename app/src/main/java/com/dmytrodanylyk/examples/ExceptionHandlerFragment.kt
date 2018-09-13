@@ -8,19 +8,24 @@ import android.view.ViewGroup
 import com.dmytrodanylyk.R
 import kotlinx.android.synthetic.main.fragment_button.*
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.android.Main
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.experimental.CoroutineContext
 
 class ExceptionHandlerFragment : Fragment() {
 
-    private val uiContext: CoroutineContext = UI
+    private val uiContext: CoroutineContext = Dispatchers.Main
     private val dataProvider = DataProvider()
-    private val job: Job = Job()
+    private lateinit var job: Job
 
     companion object {
         const val TAG = "ExceptionHandlerFragment"
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        job = Job()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -41,10 +46,11 @@ class ExceptionHandlerFragment : Fragment() {
     private val exceptionHandler: CoroutineContext = CoroutineExceptionHandler { _, throwable ->
         showText(throwable.message ?: "")
         hideLoading()
+        job = Job() // exception handler cancels job
     }
 
     // we can attach CoroutineExceptionHandler to parent context
-    private fun loadData() = launch(uiContext + exceptionHandler, parent = job) {
+    private fun loadData() = GlobalScope.launch(uiContext + exceptionHandler + job) {
         showLoading()
 
         val result = dataProvider.loadData()
@@ -65,7 +71,7 @@ class ExceptionHandlerFragment : Fragment() {
         textView.text = data
     }
 
-    class DataProvider(private val context: CoroutineContext = CommonPool) {
+    class DataProvider(private val context: CoroutineContext = Dispatchers.IO) {
 
         suspend fun loadData(): String = withContext(context) {
             delay(2, TimeUnit.SECONDS) // imitate long running operation

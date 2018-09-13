@@ -15,11 +15,13 @@ Contains following examples:
 - How to cancel a coroutine
 - How to catch exception thrown inside coroutine (try/catch)
 - How to catch exception thrown inside coroutine (exception handler)
+- Lifecycle Aware Coroutine - Lifecycle Observer
+- Lifecycle Aware Coroutine - Scoped Fragment
 
 ### How to launch a coroutine 
 
 ```kotlin
-fun loadData() = launch(uiContext, parent = job) {
+fun loadData() = GlobalScope.launch(uiContext + job) {
     showLoading() // ui thread
 
     val result = dataProvider.loadData() // non ui thread, suspend until finished
@@ -33,7 +35,7 @@ You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/Launch
 ### How to launch coroutine with a timeout
 
 ```kotlin
-fun loadData() = launch(uiContext, parent = job) {
+fun loadData() = GlobalScope.launch(uiContext + job) {
     showLoading()
 
     val result = withTimeoutOrNull(1, TimeUnit.SECONDS) { dataProvider.loadData() }
@@ -47,7 +49,7 @@ You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/Launch
 ### How to launch coroutine which perform 2 background tasks sequentially 
 
 ```kotlin
-fun loadData() = launch(uiContext, parent = job) {
+fun loadData() = GlobalScope.launch(uiContext + job) {
     showLoading()
 
     val result1 = dataProvider.loadData()
@@ -62,7 +64,7 @@ You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/Launch
 ### How to launch coroutine which perform 2 background tasks in parallel 
 
 ```kotlin
-fun loadData() = launch(uiContext, parent = job) {
+fun loadData() = GlobalScope.launch(uiContext + job) {
     showLoading()
 
     val result1 = async { dataProvider.loadData() }
@@ -80,7 +82,7 @@ You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/Launch
 ```kotlin
 private var job: Job = Job()
 
-fun loadData() = launch(uiContext, parent = job) {
+fun loadData() = GlobalScope.launch(uiContext + job) {
     ...
 }
 
@@ -95,7 +97,7 @@ You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/Cancel
 ### How to catch exception thrown inside coroutine (try/catch) [source](app/src/main/java/com/dmytrodanylyk/examples/ExceptionFragment.kt)
 
 ```kotlin
-fun loadData() = launch(uiContext, parent = job) {
+fun loadData() = GlobalScope.launch(uiContext + job) {
     showLoading()
 
     try {
@@ -116,11 +118,79 @@ You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/Except
 val exceptionHandler: CoroutineContext = CoroutineExceptionHandler { _, throwable ->
     showText(throwable.message ?: "")
     hideLoading()
+    job = Job() // exception handler cancels job
 }
 
 // we can attach CoroutineExceptionHandler to parent context
-fun loadData() = launch(uiContext + exceptionHandler, parent = job) {
+fun loadData() = GlobalScope.launch(uiContext + job + exceptionHandler) {
     ...
 }
 ```
 You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/ExceptionHandlerFragment.kt)
+
+# Lifecycle Aware Coroutine - Lifecycle Observer
+
+You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/LifecycleAwareFragment.kt)
+
+```kotlin
+class MainScope : CoroutineScope, LifecycleObserver {
+
+    private lateinit var job: Job
+    override val coroutineContext: CoroutineContext
+        get() = job + Dispatchers.Main
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    fun onCreate() {
+        job = Job()
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    fun destroy() = job.cancel()
+}
+
+class MyFragment : ScopedFragment() {
+
+    private val mainScope = MainScope()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        lifecycle.addObserver(mainScope)
+    }
+
+    private fun loadData() = mainScope.launch {
+        ...
+    }
+}
+
+```
+
+# Lifecycle Aware Coroutine - Scoped Fragment
+
+You can get full code [here](app/src/main/java/com/dmytrodanylyk/examples/ScopedFragment.kt)
+
+```kotlin
+abstract class ScopedFragment : Fragment(), CoroutineScope {
+
+    protected lateinit var job: Job
+    override val coroutineContext: CoroutineContext
+        get() = job + Dispatchers.Main
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        job = Job()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        job.cancel()
+    }
+}
+
+class MyFragment : ScopedFragment() {
+
+    private fun loadData() = launch {
+        ...
+    }
+}
+
+```

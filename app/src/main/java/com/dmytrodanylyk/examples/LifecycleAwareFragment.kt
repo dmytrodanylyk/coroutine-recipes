@@ -11,29 +11,38 @@ import android.view.ViewGroup
 import com.dmytrodanylyk.R
 import kotlinx.android.synthetic.main.fragment_button.*
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.android.Main
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.experimental.CoroutineContext
 
-class AndroidJob(lifecycle: Lifecycle) : Job by Job(), LifecycleObserver {
+class MainScope : CoroutineScope, LifecycleObserver {
 
-    init {
-        lifecycle.addObserver(this)
+    private lateinit var job: Job
+    override val coroutineContext: CoroutineContext
+        get() = job + Dispatchers.Main
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    fun onCreate() {
+        job = Job()
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    fun destroy() = cancel()
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    fun destroy() = job.cancel()
 }
 
 class LifecycleAwareFragment : Fragment() {
 
-    private val uiContext: CoroutineContext = UI
     private val dataProvider = DataProvider()
-    private val job: AndroidJob = AndroidJob(lifecycle)
+    private val mainScope = MainScope()
 
     companion object {
         const val TAG = "LifecycleAwareFragment"
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        lifecycle.addObserver(mainScope)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -46,7 +55,7 @@ class LifecycleAwareFragment : Fragment() {
         button.setOnClickListener { loadData() }
     }
 
-    private fun loadData() = launch(uiContext, parent = job) {
+    private fun loadData() = mainScope.launch {
         showLoading() // ui thread
 
         val result = dataProvider.loadData() // non ui thread, suspend until finished
@@ -67,7 +76,7 @@ class LifecycleAwareFragment : Fragment() {
         textView.text = data
     }
 
-    class DataProvider(private val context: CoroutineContext = CommonPool) {
+    class DataProvider(private val context: CoroutineContext = Dispatchers.IO) {
 
         suspend fun loadData(): String = withContext(context) {
             delay(2, TimeUnit.SECONDS) // imitate long running operation

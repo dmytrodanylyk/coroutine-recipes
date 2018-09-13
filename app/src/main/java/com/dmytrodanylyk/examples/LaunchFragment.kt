@@ -8,19 +8,24 @@ import android.view.ViewGroup
 import com.dmytrodanylyk.R
 import kotlinx.android.synthetic.main.fragment_button.*
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.android.Main
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.experimental.CoroutineContext
 
 class LaunchFragment : Fragment() {
 
-    private val uiContext: CoroutineContext = UI
+    private val uiContext: CoroutineDispatcher = Dispatchers.Main
     private val dataProvider = DataProvider()
-    private val job: Job = Job()
+    private lateinit var job: Job
 
     companion object {
         const val TAG = "LaunchFragment"
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        job = Job()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -38,7 +43,7 @@ class LaunchFragment : Fragment() {
         job.cancel()
     }
 
-    private fun loadData() = launch(uiContext, parent = job) {
+    private fun loadData() = GlobalScope.launch(uiContext + job) {
         showLoading() // ui thread
 
         val result = dataProvider.loadData() // non ui thread, suspend until finished
@@ -59,7 +64,7 @@ class LaunchFragment : Fragment() {
         textView.text = data
     }
 
-    class DataProvider(private val context: CoroutineContext = CommonPool) {
+    class DataProvider(private val context: CoroutineContext = Dispatchers.IO) {
 
         suspend fun loadData(): String = withContext(context) {
             delay(2, TimeUnit.SECONDS) // imitate long running operation

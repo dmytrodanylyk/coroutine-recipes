@@ -9,9 +9,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        supportFragmentManager.beginTransaction()
-                .add(R.id.fragmentContainer, SampleListFragment(), SampleListFragment.TAG)
-                .commitNow()
+        if (savedInstanceState == null) {
+            supportFragmentManager.beginTransaction()
+                    .add(R.id.fragmentContainer, SampleListFragment(), SampleListFragment.TAG)
+                    .commitNow()
+        }
     }
 
     override fun onBackPressed() {

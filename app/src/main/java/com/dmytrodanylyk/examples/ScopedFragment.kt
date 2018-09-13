@@ -13,19 +13,29 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.experimental.CoroutineContext
 
-class LaunchParallelFragment : Fragment() {
+abstract class ScopedFragment : Fragment(), CoroutineScope {
 
-    private val uiContext: CoroutineContext = Dispatchers.Main
-    private val dataProvider = DataProvider()
-    private lateinit var job: Job
-
-    companion object {
-        const val TAG = "LaunchParallelFragment"
-    }
+    protected lateinit var job: Job
+    override val coroutineContext: CoroutineContext
+        get() = job + Dispatchers.Main
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         job = Job()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        job.cancel()
+    }
+}
+
+class AndroidScopedFragment : ScopedFragment() {
+
+    private val dataProvider = DataProvider()
+
+    companion object {
+        const val TAG = "AndroidScopedFragment"
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -38,20 +48,13 @@ class LaunchParallelFragment : Fragment() {
         button.setOnClickListener { loadData() }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        job.cancel()
-    }
+    private fun loadData() = launch {
+        showLoading() // ui thread
 
-    private fun loadData() = GlobalScope.launch(uiContext + job) {
-        showLoading()
+        val result = dataProvider.loadData() // non ui thread, suspend until finished
 
-        val result1 = async { dataProvider.loadData() }
-        val result2 = async { dataProvider.loadData() }
-
-        val data = "${result1.await()}\n${result2.await()}"
-        showText(data)
-        hideLoading()
+        showText(result) // ui thread
+        hideLoading() // ui thread
     }
 
     private fun showLoading() {

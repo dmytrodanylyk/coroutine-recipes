@@ -17,7 +17,8 @@ class SampleListFragment : ListFragment() {
         private const val SAMPLE_CANCEL = "5. Cancel"
         private const val SAMPLE_EXCEPTION = "6. Exception Handling (try/catch)"
         private const val SAMPLE_EXCEPTION_HANDLER = "6. Exception Handling (handler)"
-        private const val SAMPLE_LIFECYCLE = "7. Lifecycle Aware Coroutine"
+        private const val SAMPLE_LIFECYCLE = "7. Lifecycle Awareness (LifecycleObserver)"
+        private const val SAMPLE_SCOPED_FRAGMENT = "8. Lifecycle Awareness (ScopedFragment)"
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -31,7 +32,8 @@ class SampleListFragment : ListFragment() {
                 SAMPLE_CANCEL,
                 SAMPLE_EXCEPTION,
                 SAMPLE_EXCEPTION_HANDLER,
-                SAMPLE_LIFECYCLE
+                SAMPLE_LIFECYCLE,
+                SAMPLE_SCOPED_FRAGMENT
         )
         listAdapter = ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, list)
         listView.setOnItemClickListener { _, _, position, _ ->
@@ -44,6 +46,7 @@ class SampleListFragment : ListFragment() {
                 SAMPLE_EXCEPTION -> showFragment(ExceptionFragment(), ExceptionFragment.TAG)
                 SAMPLE_EXCEPTION_HANDLER -> showFragment(ExceptionHandlerFragment(), ExceptionHandlerFragment.TAG)
                 SAMPLE_LIFECYCLE -> showFragment(LifecycleAwareFragment(), LifecycleAwareFragment.TAG)
+                SAMPLE_SCOPED_FRAGMENT -> showFragment(AndroidScopedFragment(), AndroidScopedFragment.TAG)
             }
         }
     }

@@ -14,6 +14,7 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.Main
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.experimental.CoroutineDispatcher
 import kotlin.coroutines.experimental.CoroutineContext
 
 class MainScope : CoroutineScope, LifecycleObserver {
@@ -22,7 +23,7 @@ class MainScope : CoroutineScope, LifecycleObserver {
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.Main
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     fun onCreate() {
         job = Job()
     }
@@ -76,9 +77,9 @@ class LifecycleAwareFragment : Fragment() {
         textView.text = data
     }
 
-    class DataProvider(private val context: CoroutineContext = Dispatchers.IO) {
+    class DataProvider(private val dispatcher: CoroutineDispatcher = Dispatchers.IO) {
 
-        suspend fun loadData(): String = withContext(context) {
+        suspend fun loadData(): String = withContext(dispatcher) {
             delay(2, TimeUnit.SECONDS) // imitate long running operation
             "Data is available: ${Random().nextInt()}"
         }

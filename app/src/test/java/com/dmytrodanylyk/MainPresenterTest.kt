@@ -33,19 +33,19 @@ class MainPresenterTest {
 
 class MainPresenter(private val view: MainView,
                     private val dataProvider: DataProviderAPI,
-                    private val uiContext: CoroutineDispatcher = Dispatchers.Main,
-                    private val bgContext: CoroutineContext = Dispatchers.IO) {
+                    private val uiDispatcher: CoroutineDispatcher = Dispatchers.Main,
+                    private val bgDispatcher: CoroutineContext = Dispatchers.IO) {
 
     fun startPresenting() {
         loadData()
     }
 
-    private fun loadData() = GlobalScope.launch(uiContext) {
+    private fun loadData() = GlobalScope.launch(uiDispatcher) {
         // use the provided uiContext (UI)
         view.showLoading()
 
         // use the provided ioContext (CommonPool)
-        val task = async(bgContext) { dataProvider.loadData("Task") }
+        val task = async(bgDispatcher) { dataProvider.loadData("Task") }
         val result = task.await()
 
         view.showData(result)

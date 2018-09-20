@@ -11,11 +11,11 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.Main
 import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlinx.coroutines.experimental.CoroutineDispatcher
 
 class ExceptionFragment : Fragment() {
 
-    private val uiContext: CoroutineContext = Dispatchers.Main
+    private val uiDispatcher: CoroutineDispatcher = Dispatchers.Main
     private val dataProvider = DataProvider()
     private lateinit var job: Job
 
@@ -43,7 +43,7 @@ class ExceptionFragment : Fragment() {
         job.cancel()
     }
 
-    private fun loadData() = GlobalScope.launch(uiContext + job) {
+    private fun loadData() = GlobalScope.launch(uiDispatcher + job) {
         showLoading()
 
         try {
@@ -68,9 +68,9 @@ class ExceptionFragment : Fragment() {
         textView.text = data
     }
 
-    class DataProvider(private val context: CoroutineContext = Dispatchers.IO) {
+    class DataProvider(private val dispatcher: CoroutineDispatcher = Dispatchers.IO) {
 
-        suspend fun loadData(): String = withContext(context) {
+        suspend fun loadData(): String = withContext(dispatcher) {
             delay(2, TimeUnit.SECONDS) // imitate long running operation
             mayThrowException()
             "Data is available: ${Random().nextInt()}"

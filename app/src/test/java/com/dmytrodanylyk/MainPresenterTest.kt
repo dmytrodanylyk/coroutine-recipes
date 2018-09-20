@@ -1,15 +1,11 @@
 package com.dmytrodanylyk
 
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Unconfined
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.android.Main
 import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 import kotlin.coroutines.experimental.CoroutineContext
-import kotlin.coroutines.experimental.EmptyCoroutineContext
 import org.mockito.Mockito.`when` as whenMockito
 
 class MainPresenterTest {
@@ -23,7 +19,7 @@ class MainPresenterTest {
         val mockDataProvider = mock(DataProviderAPI::class.java)
         whenMockito(mockDataProvider.loadData(ArgumentMatchers.anyString())).thenReturn(MOCK_RESULT)
 
-        val presenter = MainPresenter(mockView, mockDataProvider, Unconfined, Unconfined)
+        val presenter = MainPresenter(mockView, mockDataProvider, Dispatchers.Unconfined, Dispatchers.Unconfined)
 
         // test
         presenter.startPresenting()
@@ -37,14 +33,14 @@ class MainPresenterTest {
 
 class MainPresenter(private val view: MainView,
                     private val dataProvider: DataProviderAPI,
-                    private val uiContext: CoroutineContext = UI,
-                    private val bgContext: CoroutineContext = CommonPool) {
+                    private val uiContext: CoroutineDispatcher = Dispatchers.Main,
+                    private val bgContext: CoroutineContext = Dispatchers.IO) {
 
     fun startPresenting() {
         loadData()
     }
 
-    private fun loadData() = launch(uiContext) {
+    private fun loadData() = GlobalScope.launch(uiContext) {
         // use the provided uiContext (UI)
         view.showLoading()
 
